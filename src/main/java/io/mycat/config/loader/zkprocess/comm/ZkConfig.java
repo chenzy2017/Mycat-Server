@@ -2,6 +2,8 @@ package io.mycat.config.loader.zkprocess.comm;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -116,7 +118,24 @@ public class ZkConfig {
 
         // validate
         String zkURL = pros.getProperty(ZkParamCfg.ZK_CFG_URL.getKey());
-        String myid = pros.getProperty(ZkParamCfg.ZK_CFG_MYID.getKey());
+
+        // 获取主机名作为myid，如果获取不到，在使用配置文件中的值
+        String myid = null;
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            myid = addr.getHostName();
+            myid = myid.split("\\.")[0];
+            LOGGER.info("IP地址：" + addr.getHostAddress() + "，主机名：" + addr.getHostName());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        if(myid == null){
+            myid = pros.getProperty(ZkParamCfg.ZK_CFG_MYID.getKey());
+        }
+
+        pros.setProperty(ZkParamCfg.ZK_CFG_MYID.getKey(), myid);
+
 
         String clusterId = pros.getProperty(ZkParamCfg.ZK_CFG_CLUSTERID.getKey());
 
